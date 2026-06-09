@@ -1,0 +1,12 @@
+# TouchDesigner backup files
+*.toe.*
+*.tox.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS
+.DS_Store
+Thumbs.db
