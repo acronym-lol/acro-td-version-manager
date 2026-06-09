@@ -14,7 +14,7 @@ The mixin will automatically create:
     - Repopath, Enableexternaltox, Externaltoxpath, Onsave, Reloadtox, Reloadcustom, Reloadbuiltin
 
     "Version" parameter page:
-    - Versionfile: Full path to version file (default: {project.folder}/{comp.name.lower()}-version.json)
+    - Versionfile: Full path to version file (default: {project.folder}/{comp.name}-VERSION.json)
 
     [Version Info]
     - Version, Build, Tdversion, Tdbuild, Lastupdate (read-only)
@@ -32,6 +32,7 @@ The mixin will automatically create:
     - Devmode: Dev mode menu (off/auto/always)
     - Onlybumpdirty: Skip version bump if component has no changes (default: True)
     - Forcebump: Pulse to manually trigger version bump dialog
+
 """
 
 import json
@@ -187,7 +188,7 @@ class AcroVersionExt(AcroToxExt):
 
         # Set default Versionfile path if newly created (empty)
         if not comp.par.Versionfile.eval():
-            default_path = os.path.join(project.folder, f"{comp.name.lower()}-version.json")
+            default_path = os.path.join(project.folder, f"{comp.name}-VERSION.json")
             comp.par.Versionfile.val = default_path
             comp.par.Versionfile.default = default_path
 
@@ -204,7 +205,7 @@ class AcroVersionExt(AcroToxExt):
             if not os.path.isabs(path):
                 path = os.path.join(project.folder, path)
             return path
-        return os.path.join(project.folder, f"{self._versionOwnerComp.name.lower()}-version.json")
+        return os.path.join(project.folder, f"{self._versionOwnerComp.name.lower()}-VERSION.json")
 
     @property
     def VersionInfo(self):
@@ -704,7 +705,7 @@ class AcroVersionExt(AcroToxExt):
         """Add new version entry to component-specific CHANGELOG and open in editor"""
         # Use Repopath if set, otherwise fall back to project.folder
         base_path = self.Repopath if self.Repopath else project.folder
-        changelog_name = f"{self._versionOwnerComp.name.lower()}-CHANGELOG.md"
+        changelog_name = f"{self._versionOwnerComp.name}-CHANGELOG.md"
         changelog_path = os.path.join(base_path, changelog_name)
         today = datetime.datetime.now().strftime('%Y-%m-%d')
 
@@ -725,7 +726,7 @@ class AcroVersionExt(AcroToxExt):
                     content = content[:header_end] + '\n' + new_entry + content[header_end+1:]
             else:
                 # Create new changelog
-                content = f"# Changelog\n\nAll notable changes to this project will be documented in this file.{new_entry}"
+                content = f"# Changelog\n\nAll notable changes to this project will be documented in this file.\n{new_entry}"
 
             with open(changelog_path, 'w') as f:
                 f.write(content)

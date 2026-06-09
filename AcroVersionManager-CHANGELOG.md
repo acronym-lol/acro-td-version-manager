@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2026-06-09
+- Fixed version and changelog naming.
+
 ## [1.1.0] - 2026-04-08
 - Changed skip button to build and don't save. So saving without changelog update is possible and skipping saving entirely is also supported.
 

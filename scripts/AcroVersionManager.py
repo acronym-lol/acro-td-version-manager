@@ -55,15 +55,18 @@ class AcroVersionManager(CallbacksExt, AcroVersionExt):
     def CheckAll(self):
         """Check all versioned components for updates. Called on startup or manually."""
         updates = self._scanForUpdates()
+        version_str = self.VersionString
         print("\n" + "=" * 60)
-        print("AcroVersionManager")
-        print("=" * 60)
+        print(f"AcroVersionManager - {version_str}")
+
         print(f"Checked {len(self._getVersionedComponents())} versioned component(s).")
         if not updates:
             if self.ownerComp.par.Printtotextport.eval():
                 print("Status: All components are up to date.")
                 self.PrintReport()
             return []
+        
+        print("=" * 60)
 
         # Print report if enabled
         if self.ownerComp.par.Printtotextport.eval():
