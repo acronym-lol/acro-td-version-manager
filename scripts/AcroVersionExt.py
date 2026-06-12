@@ -205,7 +205,7 @@ class AcroVersionExt(AcroToxExt):
             if not os.path.isabs(path):
                 path = os.path.join(project.folder, path)
             return path
-        return os.path.join(project.folder, f"{self._versionOwnerComp.name.lower()}-VERSION.json")
+        return os.path.join(project.folder, f"{self._versionOwnerComp.name}-VERSION.json")
 
     @property
     def VersionInfo(self):
@@ -589,9 +589,9 @@ class AcroVersionExt(AcroToxExt):
     # =========================================================================
 
     def GetBuildNumberFromProjectName(self):
-        """Extract build number from project name (e.g., 'AcroTDCore.246.toe' -> 246)"""
+        """Extract build number from project name (e.g., 'AcroCore.246.toe' -> 246)"""
         try:
-            # project.name format: 'AcroTDCore.246.toe'
+            # project.name format: 'AcroCore.246.toe'
             parts = project.name.split('.')
             if len(parts) >= 2:
                 return int(parts[-2])
@@ -654,7 +654,7 @@ class AcroVersionExt(AcroToxExt):
             elif result == 3:  # Build - save with build bump only, no semantic version change
                 should_save = True
             elif result == 4:  # Don't Save - skip everything
-                print(f"{self.ownerComp.name} - Skipped (no changes saved)")
+                debug(f"{self._versionOwnerComp.name} - Skipped (no changes saved)")
                 return
 
         if should_save:
@@ -670,7 +670,7 @@ class AcroVersionExt(AcroToxExt):
             if is_semantic_bump:
                 self.UpdateChangelog(new_version)
 
-            print(f"{self.ownerComp.name} - Version updated to v{new_version}.{new_build}")
+            debug(f"{self._versionOwnerComp.name} - Version updated to v{new_version}.{new_build}")
 
             # Auto-save tox to capture the version bump
             self.SaveTox(prompt=False)

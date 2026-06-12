@@ -296,8 +296,6 @@ class AcroVersionManager(CallbacksExt, AcroVersionExt):
 
     def onSaveStart(self):
         """Called before project saves - handle version bumps and dirty tox files."""
-        print("DEBUG: onSaveStart() called")
-
         # Handle version-tracked components (version bump + auto tox save)
         self.PromptVersionBumpAll()
 
@@ -311,44 +309,28 @@ class AcroVersionManager(CallbacksExt, AcroVersionExt):
 
     def PromptVersionBumpAll(self):
         """Call PromptVersionBump on all version-tracked components with dev mode active."""
-        components = self._getVersionedComponents()
-        print(f"DEBUG PromptVersionBumpAll: Found {len(components)} versioned component(s)")
-
-        for comp in components:
+        for comp in self._getVersionedComponents():
             # Skip self to avoid interrupting save operation
             if comp == self.ownerComp:
-                print(f"DEBUG: Skipping self: {comp.path}")
                 continue
 
-            print(f"DEBUG: Checking {comp.path}")
-
             if not hasattr(comp, 'PromptVersionBump'):
-                print(f"  - Skipping: no PromptVersionBump method")
                 continue
 
             # Check dev mode using public properties (can't use private _isDevActive)
             if not hasattr(comp, 'Devmode'):
-                print(f"  - Skipping: no Devmode property")
                 continue
 
             devmode = comp.Devmode
-            print(f"  - Devmode: {devmode}")
-
             is_dev_active = False
             if devmode == 'always':
                 is_dev_active = True
             elif devmode == 'auto':
                 is_dev_active = hasattr(comp, 'IsInRepo') and comp.IsInRepo
-                print(f"  - IsInRepo: {comp.IsInRepo if hasattr(comp, 'IsInRepo') else 'N/A'}")
             # devmode == 'off' stays False
 
-            print(f"  - Dev active: {is_dev_active}")
-
             if is_dev_active:
-                print(f"  - Calling PromptVersionBump() on {comp.path}")
                 comp.PromptVersionBump()
-            else:
-                print(f"  - Skipping {comp.path} (dev mode not active)")
 
     # -------------------------------------------------------------------------
     # Dirty Tox Management
