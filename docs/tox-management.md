@@ -1,3 +1,7 @@
+---
+last_reviewed: 2026-08-27
+---
+
 # AcroToxExt - External Tox Management
 
 ## Overview

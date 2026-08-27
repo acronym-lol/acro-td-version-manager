@@ -1,3 +1,7 @@
+---
+last_reviewed: 2026-08-27
+---
+
 # Acro TD Version Manager
 
 Central version and tox management for TouchDesigner components.

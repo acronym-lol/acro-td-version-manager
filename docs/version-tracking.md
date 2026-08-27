@@ -1,3 +1,7 @@
+---
+last_reviewed: 2026-08-27
+---
+
 # AcroVersionExt — Version Tracking Extension
 
 ## Overview
