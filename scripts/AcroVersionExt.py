@@ -304,6 +304,9 @@ class AcroVersionExt(AcroToxExt):
                 build=data.get('build'),
                 td_version=data.get('td_version'),
                 td_build=data.get('td_build'),
+                # Pass the file's timestamp so a plain refresh doesn't stamp
+                # now() and dirty the component on every init
+                last_update=data.get('last_update'),
             )
         except Exception as e:
             print(f"Error reading {version_file}: {e}")
@@ -482,31 +485,30 @@ class AcroVersionExt(AcroToxExt):
 
         comp = self._versionOwnerComp
 
+        def setPar(par, value):
+            # Skip unchanged values so a no-op refresh leaves the comp clean
+            value = str(value)
+            if par.eval() == value:
+                return False
+            par.readOnly = False
+            par.val = value
+            par.readOnly = True
+            return True
+
+        changed = False
         if version is not None:
-            comp.par.Version.readOnly = False
-            comp.par.Version.val = str(version)
-            comp.par.Version.readOnly = True
+            changed |= setPar(comp.par.Version, version)
         if build is not None:
-            comp.par.Build.readOnly = False
-            comp.par.Build.val = str(build)
-            comp.par.Build.readOnly = True
+            changed |= setPar(comp.par.Build, build)
         if td_version is not None:
-            comp.par.Tdversion.readOnly = False
-            comp.par.Tdversion.val = str(td_version)
-            comp.par.Tdversion.readOnly = True
+            changed |= setPar(comp.par.Tdversion, td_version)
         if td_build is not None:
-            comp.par.Tdbuild.readOnly = False
-            comp.par.Tdbuild.val = str(td_build)
-            comp.par.Tdbuild.readOnly = True
+            changed |= setPar(comp.par.Tdbuild, td_build)
         if last_update is not None:
-            comp.par.Lastupdate.readOnly = False
-            comp.par.Lastupdate.val = str(last_update)
-            comp.par.Lastupdate.readOnly = True
-        elif any([version, build, td_version, td_build]):
-            # Auto-update timestamp if any version info changed
-            comp.par.Lastupdate.readOnly = False
-            comp.par.Lastupdate.val = datetime.datetime.now().isoformat()
-            comp.par.Lastupdate.readOnly = True
+            setPar(comp.par.Lastupdate, last_update)
+        elif changed:
+            # Auto-update timestamp only if version info actually changed
+            setPar(comp.par.Lastupdate, datetime.datetime.now().isoformat())
 
     def PerformUpdate(self, remote_version):
         """
