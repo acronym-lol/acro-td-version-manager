@@ -1,5 +1,7 @@
 ---
 last_reviewed: 2026-08-27
+sidebar_position: 3
+sidebar_label: 'Version Manager (AcroVersionManager)'
 ---
 
 # AcroVersionManager
