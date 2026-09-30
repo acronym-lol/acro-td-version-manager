@@ -1,6 +1,10 @@
 # Acro TD Version Manager
 
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://acronym-lol.github.io/acro-td-version-manager/)
+
 Central version and tox management for TouchDesigner components.
+
+**Documentation:** https://acronym-lol.github.io/acro-td-version-manager/
 
 ## Features
 
