@@ -1,6 +1,5 @@
 ---
 last_reviewed: 2026-08-27
-sidebar_position: 5
 sidebar_label: 'Dev Workflow'
 ---
 

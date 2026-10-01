@@ -1,6 +1,5 @@
 ---
 last_reviewed: 2026-08-27
-sidebar_position: 1
 sidebar_label: 'Tox Management (AcroToxExt)'
 ---
 
