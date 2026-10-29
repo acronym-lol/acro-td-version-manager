@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-10-28
+- The auth token is now read from an environment variable whose name goes in Tokenenv. The saved Token parameter is removed; components that had a value print a warning.
+
 ## [1.1.1] - 2026-06-09
 - Fixed version and changelog naming.
 

@@ -40,19 +40,20 @@ https://raw.githubusercontent.com/myorg/myproject/main/version.json
 When `GetRemoteVersion` is called and `Versionurl` is set, the system:
 
 1. Constructs an HTTP request to the URL.
-2. If token authentication is enabled (`Usetoken` is on and `Token` is set), adds an `Authorization` header.
+2. If token authentication is enabled (`Usetoken` is on and the environment variable named in `Tokenenv` holds a token), adds an `Authorization` header.
 3. Fetches the response and parses the returned JSON.
 
 ```python
+import os
 import urllib.request
 import json
 
 url = op('versioncheck').par.Versionurl.eval()
 request = urllib.request.Request(url)
 
-# Optional token authentication
-if op('versioncheck').par.Usetoken.eval() and op('versioncheck').par.Token.eval():
-    token = op('versioncheck').par.Token.eval()
+# Optional token authentication: Tokenenv names the environment variable
+token = os.environ.get(op('versioncheck').par.Tokenenv.eval(), '')
+if op('versioncheck').par.Usetoken.eval() and token:
     request.add_header('Authorization', f'token {token}')
 
 response = urllib.request.urlopen(request)
@@ -111,39 +112,48 @@ This relative path is then passed to `git show` to retrieve the corresponding fi
 
 ## Token Authentication
 
-Token authentication is required when the version file is hosted in a private GitHub repository. The system uses a GitHub fine-grained Personal Access Token (PAT).
+Token authentication is needed when the version file is hosted somewhere that requires it, such as a private GitHub repository. The token itself never goes in a parameter: it lives in an environment variable, and the `Tokenenv` parameter holds that variable's **name**. Parameter values are saved into the `.toe` and `.tox`, so a token stored in one would be committed with the project.
 
-### Creating a Fine-Grained PAT
+### Configuration
+
+| Parameter  | Description                                                        |
+|------------|--------------------------------------------------------------------|
+| `Usetoken` | Toggle to enable or disable token authentication                   |
+| `Tokenenv` | Name of the environment variable that holds the token (e.g. `MY_REPO_TOKEN`) |
+
+When `Usetoken` is enabled and the variable named in `Tokenenv` has a value, the HTTP request includes the following header:
+
+```python
+request.add_header('Authorization', f'token {TOKEN}')
+```
+
+If `Usetoken` is off, `Tokenenv` is empty, or the variable isn't set, the request is made without authentication. This is sufficient for public repositories.
+
+### Setting the Environment Variable
+
+Pick any variable name (`MY_REPO_TOKEN` here is a placeholder) and enter the same name in `Tokenenv`. Components can share one variable or each name their own.
+
+- **Windows:** run `setx MY_REPO_TOKEN "<token>"` in a terminal, or add it under **System Properties > Environment Variables**.
+- **macOS:** export it in the shell profile you launch TouchDesigner from, or set it with `launchctl setenv MY_REPO_TOKEN "<token>"`.
+
+TouchDesigner reads environment variables when it starts, so **restart TouchDesigner** after setting or changing one.
+
+### Example: a GitHub Fine-Grained PAT
+
+For a version file in a private GitHub repository:
 
 1. Go to **GitHub > Settings > Developer settings > Personal access tokens > Fine-grained tokens**.
 2. Click **Generate new token**.
 3. Set the token name and expiration as desired.
 4. Under **Repository access**, select **Only select repositories** and choose the specific repository.
 5. Under **Permissions > Repository permissions**, set **Contents** to **Read-only**. No other permissions are needed.
-6. Click **Generate token** and copy the resulting token string.
-
-### Configuration
-
-Three parameters control token authentication:
-
-| Parameter  | Description                                      |
-|------------|--------------------------------------------------|
-| `Usetoken` | Toggle to enable or disable token authentication |
-| `Token`    | The GitHub fine-grained Personal Access Token     |
-
-When both `Usetoken` is enabled and `Token` has a value, the HTTP request includes the following header:
-
-```python
-request.add_header('Authorization', f'token {TOKEN}')
-```
-
-If `Usetoken` is off or `Token` is empty, the request is made without authentication. This is sufficient for public repositories.
+6. Click **Generate token** and put the resulting token string in your environment variable.
 
 ### Security Notes
 
-- The token only requires **Contents** read-only permission on the specific repository.
-- Do not commit tokens to version control. Store them in environment variables or parameter overrides that are excluded from commits.
-- Fine-grained tokens can be scoped to a single repository, limiting exposure if the token is compromised.
+- The token is sent to whatever `Versionurl` points at, so only enable `Usetoken` for URLs you trust.
+- Give the token the least access that works. A GitHub fine-grained token needs only **Contents** read-only on the one repository.
+- Components saved by older versions had a `Token` parameter. It is removed when the component loads, and a warning is printed if it still held a value; move that token to an environment variable.
 
 ---
 
@@ -258,7 +268,7 @@ This warning indicates a potentially unexpected state. A non-development project
 
 ### Remote version fetch returns nothing
 
-- **HTTP URL method**: Verify that `Versionurl` is set and the URL is reachable. Open the URL in a browser to confirm it returns valid JSON. For private repositories, ensure `Usetoken` is enabled and `Token` is set with a valid PAT.
+- **HTTP URL method**: Verify that `Versionurl` is set and the URL is reachable. Open the URL in a browser to confirm it returns valid JSON. For private repositories, ensure `Usetoken` is enabled and `Tokenenv` names an environment variable holding a valid token.
 - **Git fetch method**: Verify that `Repopath` points to a valid Git repository directory and that the remote is configured. Run `git remote -v` in the repository to confirm.
 
 ### Authentication errors (HTTP 401 or 403)
@@ -266,15 +276,17 @@ This warning indicates a potentially unexpected state. A non-development project
 - Confirm the token has not expired.
 - Confirm the token has **Contents** read-only permission for the target repository.
 - Confirm `Usetoken` is enabled.
+- Confirm the variable named in `Tokenenv` is set, and that TouchDesigner was restarted after setting it. `op('versioncheck').Token != ''` checks this without printing the token.
 - Ensure the token is a fine-grained PAT scoped to the correct repository.
 
 ```python
 # Test token access manually
+import os
 import urllib.request
 
 url = "https://raw.githubusercontent.com/user/repo/main/version.json"
 request = urllib.request.Request(url)
-request.add_header('Authorization', 'token ghp_xxxxxxxxxxxxxxxxxxxx')
+request.add_header('Authorization', f"token {os.environ['MY_REPO_TOKEN']}")
 
 try:
     response = urllib.request.urlopen(request)

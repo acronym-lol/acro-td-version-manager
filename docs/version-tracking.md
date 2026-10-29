@@ -38,7 +38,7 @@ The extension manages a local JSON version file on disk, exposes version metadat
 | — | **Remote Source** (header) | — | — | — | Section separator for remote source configuration. | — |
 | `Versionurl` | Version URL | `str` | *(empty)* | No | HTTP URL to a remote version JSON file for update checks. | Always enabled |
 | `Usetoken` | Use Token | `toggle` | `False` | No | Enable token-based authentication for remote version requests. | Always enabled |
-| `Token` | Token | `str` | *(empty)* | No | Authentication token sent with remote version requests. | `me.par.Usetoken` |
+| `Tokenenv` | Token Env Variable | `str` | *(empty)* | No | Name of the environment variable that holds the auth token. The token itself is never stored in a parameter, so it isn't saved into the `.toe`/`.tox`. | `me.par.Usetoken` |
 | — | **Updates** (header) | — | — | — | Section separator for update behavior. | — |
 | `Versioncheckenabled` | Version Check Enabled | `toggle` | `True` | No | Master toggle for remote version checking. | Always enabled |
 | `Autoupdate` | Auto Update | `menu` | `off` | No | Update behavior: `off` (Disabled), `prompt` (Prompt to Update), `always` (Always Update). | `me.par.Versioncheckenabled` |
@@ -88,7 +88,8 @@ The version file is a JSON document stored on disk at the path specified by the 
 | `VersionUrl` | `str` | The configured remote version URL. |
 | `VersionCheckEnabled` | `bool` | Whether remote version checking is enabled. |
 | `Devmode` | `str` | Current dev mode value (`'off'`, `'auto'`, or `'always'`). |
-| `Token` | `str` | The configured authentication token. |
+| `Tokenenv` | `str` | Name of the environment variable that holds the auth token. |
+| `Token` | `str` | The auth token read from the environment variable named by `Tokenenv`; empty if `Tokenenv` is empty or the variable isn't set. |
 | `Usetoken` | `bool` | Whether token authentication is enabled. |
 | `Autoupdate` | `str` | Current auto-update mode (`'off'`, `'prompt'`, or `'always'`). |
 | `Reloadonupdate` | `bool` | Whether the tox reloads automatically after an update. |
@@ -101,7 +102,7 @@ The version file is a JSON document stored on disk at the path specified by the 
 | Method | Arguments | Returns | Description |
 |--------|-----------|---------|-------------|
 | `ReloadTox()` | None | None | Overrides `AcroToxExt.ReloadTox()`. Calls `super().ReloadTox()` and then `_refreshVersionFromDisk()` to ensure version parameters reflect the newly loaded tox. |
-| `GetRemoteVersion()` | None | `dict` | Fetches the remote version info. Tries the HTTP URL first (with optional token authentication via the `Token` parameter). Falls back to git fetch, checking `origin/HEAD`, `origin/main`, and `origin/master` in order. |
+| `GetRemoteVersion()` | None | `dict` | Fetches the remote version info. Tries the HTTP URL first (with optional token authentication from the environment variable named by `Tokenenv`). Falls back to git fetch, checking `origin/HEAD`, `origin/main`, and `origin/master` in order. |
 | `CompareVersions(local, remote)` | `local: dict`, `remote: dict` | `int` | Compares two version info dictionaries. Returns `1` if local is ahead, `-1` if remote is ahead, or `0` if they are equal. |
 | `HasUpdate()` | None | `tuple[bool, dict]` | Returns a tuple of `(has_update, remote_info)`. Skips the check and returns `(False, ...)` if dev mode is active or version checking is disabled. |
 | `CheckForUpdates()` | None | None | Runs `HasUpdate()` and logs the results. Detects when the local version is ahead of remote and produces devmode-aware log messages. |

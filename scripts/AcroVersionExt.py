@@ -21,7 +21,7 @@ The mixin will automatically create:
 
     [Remote Source]
     - Versionurl: URL to remote version file
-    - Usetoken / Token: Auth for private repos
+    - Usetoken / Tokenenv: Auth for private repos (token read from the named environment variable)
 
     [Updates]
     - Versioncheckenabled: Check for updates
@@ -131,7 +131,7 @@ class AcroVersionExt(AcroToxExt):
             ('Headerremote', 'Remote Source', None, False, 'header', None, 7, None),
             ('Versionurl', 'Remote Version URL', '', False, 'str', 'URL to remote version file for update checking', 8, None),
             ('Usetoken', 'Use Auth Token', False, False, 'toggle', 'Enable token authentication for private repos', 9, None),
-            ('Token', 'Auth Token', '', False, 'str', 'GitHub Personal Access Token for private repos', 10, 'me.par.Usetoken'),
+            ('Tokenenv', 'Token Env Variable', '', False, 'str', 'Name of the environment variable that holds the auth token', 10, 'me.par.Usetoken'),
             # Updates
             ('Headerupdates', 'Updates', None, False, 'header', None, 11, None),
             ('Versioncheckenabled', 'Check for Updates', True, False, 'toggle', 'Include this component in version checking', 12, None),
@@ -143,6 +143,14 @@ class AcroVersionExt(AcroToxExt):
             ('Onlybumpdirty', 'Only Bump When Dirty', True, False, 'toggle', 'Skip version bump if component has no changes', 17, None),
             ('Forcebump', 'Force Version Bump', None, False, 'pulse', 'Manually trigger version bump dialog and save tox', 18, None),
         ]
+
+        # The token used to live in a Token parameter, which saved it into the
+        # .toe/.tox. It now comes from the environment variable named by Tokenenv.
+        if hasattr(comp.par, 'Token'):
+            if comp.par.Token.eval():
+                debug(f"{comp.path}: removed the saved Token parameter. Put the token in an "
+                      f"environment variable and enter that variable's name in Tokenenv.")
+            comp.par.Token.destroy()
 
         for name, label, default, read_only, param_type, help_text, order, enable_expr in params:
             # Skip if parameter already exists
@@ -241,9 +249,15 @@ class AcroVersionExt(AcroToxExt):
         return str(self._versionOwnerComp.par.Devmode.eval())
 
     @property
+    def Tokenenv(self):
+        """Get the name of the environment variable that holds the auth token"""
+        return str(self._versionOwnerComp.par.Tokenenv.eval())
+
+    @property
     def Token(self):
-        """Get the GitHub token for authenticated requests"""
-        return str(self._versionOwnerComp.par.Token.eval())
+        """Get the auth token from the environment variable named by Tokenenv"""
+        name = self.Tokenenv
+        return os.environ.get(name, '') if name else ''
 
     @property
     def Usetoken(self):
